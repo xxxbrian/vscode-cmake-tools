@@ -23,6 +23,7 @@ import { TargetTriple, findTargetTriple, parseTargetTriple, computeTargetTriple 
 import { compare, dropNulls, Ordering, versionLess } from './util';
 import * as nls from 'vscode-nls';
 import { Environment, EnvironmentUtils } from './environmentVariables';
+import { TestKitStorage } from './testKitStorage';
 
 nls.config({ messageFormat: nls.MessageFormat.bundle, bundleFormat: nls.BundleFormat.standalone })();
 const localize: nls.LocalizeFunc = nls.loadMessageBundle();
@@ -1244,6 +1245,12 @@ export interface KitScanOptions {
  * @returns A list of Kits.
  */
 export async function scanForKits(cmakeTools?: CMakeTools, opt?: KitScanOptions) {
+    const testKitsStorage = new TestKitStorage(opt);
+    const storedKits = await testKitsStorage.getKits();
+    if (storedKits) {
+        log.debug('reusing existing kits');
+        return storedKits;
+    }
     const kit_options = opt || {};
 
     log.debug(localize('scanning.for.kits.on.system', 'Scanning for Kits on system'));
@@ -1327,6 +1334,7 @@ export async function scanForKits(cmakeTools?: CMakeTools, opt?: KitScanOptions)
         const kits = ([] as Kit[]).concat(...arrays);
         kits.map(k => log.info(localize('found.kit', 'Found Kit: {0}', k.name)));
 
+        await testKitsStorage.saveKits(kits);
         return kits;
     });
 }

@@ -752,3 +752,8 @@ function memoize<T>(fn: () => T) {
 }
 
 export const getHostSystemNameMemo = memoize(getHostSystemName);
+
+export function logElapsedTime(timerName: string, start: Date) {
+    const elapsedSeconds = (new Date().getTime() - start.getTime()) / 1000;
+    console.log(`${timerName} took ${elapsedSeconds} seconds to complete`);
+}

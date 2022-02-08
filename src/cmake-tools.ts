@@ -9,7 +9,7 @@ import collections from '@cmt/diagnostics/collections';
 import * as shlex from '@cmt/shlex';
 import { StateManager } from '@cmt/state';
 import { Strand } from '@cmt/strand';
-import { ProgressHandle, versionToString, lightNormalizePath, Version, versionLess } from '@cmt/util';
+import * as util from '@cmt/util';
 import { DirectoryContext } from '@cmt/workspace';
 import * as path from 'path';
 import * as vscode from 'vscode';
@@ -33,7 +33,6 @@ import { buildCmdStr, DebuggerEnvironmentVariable } from './proc';
 import { Property } from './prop';
 import rollbar from './rollbar';
 import * as telemetry from './telemetry';
-import { setContextValue } from './util';
 import { VariantManager } from './variant';
 import { CMakeFileApiDriver } from '@cmt/drivers/cmfileapi-driver';
 import * as nls from 'vscode-nls';
@@ -43,7 +42,6 @@ import { ConfigurationWebview } from './cache-view';
 import { updateFullFeatureSetForFolder, updateCMakeDriverInTaskProvider, enableFullFeatureSet, isActiveFolder, updateDefaultTargetsInTaskProvider, expShowCMakeLists } from './extension';
 import { ConfigurationReader } from './config';
 import * as preset from '@cmt/preset';
-import * as util from '@cmt/util';
 import { Environment, EnvironmentUtils } from './environmentVariables';
 
 nls.config({ messageFormat: nls.MessageFormat.bundle, bundleFormat: nls.BundleFormat.standalone })();
@@ -171,10 +169,10 @@ export class CMakeTools implements vscode.Disposable, api.CMakeToolsAPI {
     get minCMakeVersion() {
         return this._minCMakeVersion;
     }
-    set minCMakeVersion(version: Version | undefined) {
+    set minCMakeVersion(version: util.Version | undefined) {
         this._minCMakeVersion = version;
     }
-    private _minCMakeVersion?: Version;
+    private _minCMakeVersion?: util.Version;
 
     /**
      * Currently selected configure preset
@@ -208,7 +206,7 @@ export class CMakeTools implements vscode.Disposable, api.CMakeToolsAPI {
             log.debug(localize('resolving.config.preset', 'Resolving the selected configure preset'));
             const expandedConfigurePreset = await preset.expandConfigurePreset(this.folder.uri.fsPath,
                 configurePreset,
-                lightNormalizePath(this.folder.uri.fsPath || '.'),
+                util.lightNormalizePath(this.folder.uri.fsPath || '.'),
                 this.sourceDir,
                 this.getPreferredGeneratorName(),
                 true);
@@ -276,7 +274,7 @@ export class CMakeTools implements vscode.Disposable, api.CMakeToolsAPI {
             log.debug(localize('resolving.build.preset', 'Resolving the selected build preset'));
             const expandedBuildPreset = await preset.expandBuildPreset(this.folder.uri.fsPath,
                 buildPreset,
-                lightNormalizePath(this.folder.uri.fsPath || '.'),
+                util.lightNormalizePath(this.folder.uri.fsPath || '.'),
                 this.sourceDir,
                 this.getPreferredGeneratorName(),
                 true,
@@ -338,7 +336,7 @@ export class CMakeTools implements vscode.Disposable, api.CMakeToolsAPI {
             log.debug(localize('resolving.test.preset', 'Resolving the selected test preset'));
             const expandedTestPreset = await preset.expandTestPreset(this.folder.uri.fsPath,
                 testPreset,
-                lightNormalizePath(this.folder.uri.fsPath || '.'),
+                util.lightNormalizePath(this.folder.uri.fsPath || '.'),
                 this.sourceDir,
                 this.getPreferredGeneratorName(),
                 true,
@@ -734,7 +732,7 @@ export class CMakeTools implements vscode.Disposable, api.CMakeToolsAPI {
                     log.warning(
                         localize('switch.to.serverapi',
                             'CMake file-api communication mode is not supported in versions earlier than {0}. Switching to CMake server communication mode.',
-                            versionToString(cmake.minimalFileApiModeVersion)));
+                            util.versionToString(cmake.minimalFileApiModeVersion)));
                 } else {
                     communicationMode = legacy;
                 }
@@ -745,7 +743,7 @@ export class CMakeTools implements vscode.Disposable, api.CMakeToolsAPI {
             log.warning(
                 localize('please.upgrade.cmake',
                     'For the best experience, CMake server or file-api support is required. Please upgrade CMake to {0} or newer.',
-                    versionToString(cmake.minimalServerModeVersion)));
+                    util.versionToString(cmake.minimalServerModeVersion)));
         }
 
         try {
@@ -902,7 +900,7 @@ export class CMakeTools implements vscode.Disposable, api.CMakeToolsAPI {
             const drv = await this.getCMakeDriverInstance();
 
             // If we detect a change in the CMake cache file, refresh the webview
-            if (this._cacheEditorWebview && drv && lightNormalizePath(str) === drv.cachePath.toLowerCase()) {
+            if (this._cacheEditorWebview && drv && util.lightNormalizePath(str) === drv.cachePath.toLowerCase()) {
                 await this._cacheEditorWebview.refreshPanel();
             }
 
@@ -1016,11 +1014,11 @@ export class CMakeTools implements vscode.Disposable, api.CMakeToolsAPI {
             cmakePath = '';
         }
         const cmakeExe = await getCMakeExecutableInformation(cmakePath);
-        if (cmakeExe.version && this.minCMakeVersion && versionLess(cmakeExe.version, this.minCMakeVersion)) {
+        if (cmakeExe.version && this.minCMakeVersion && util.versionLess(cmakeExe.version, this.minCMakeVersion)) {
             rollbar.error(localize('cmake.version.not.supported',
                 'CMake version {0} may not be supported. Minimum version required is {1}.',
-                versionToString(cmakeExe.version),
-                versionToString(this.minCMakeVersion)));
+                util.versionToString(cmakeExe.version),
+                util.versionToString(this.minCMakeVersion)));
         }
         return cmakeExe;
     }
@@ -1231,6 +1229,7 @@ export class CMakeTools implements vscode.Disposable, api.CMakeToolsAPI {
     }
 
     async configureInternal(trigger: ConfigureTrigger = ConfigureTrigger.api, extra_args: string[] = [], type: ConfigureType = ConfigureType.Normal): Promise<number> {
+        const start = new Date();
         const drv: CMakeDriver | null = await this.getCMakeDriverInstance();
         // Don't show a progress bar when the extension is using Cache for configuration.
         // Using cache for configuration happens only one time.
@@ -1241,6 +1240,7 @@ export class CMakeTools implements vscode.Disposable, api.CMakeToolsAPI {
             }
             await this._ctestController.reloadTests(drv);
             this._onReconfiguredEmitter.fire();
+            util.logElapsedTime("Cached Configure", start);
             return retc;
         }
 
@@ -1270,7 +1270,7 @@ export class CMakeTools implements vscode.Disposable, api.CMakeToolsAPI {
                         try {
                             progress.report({ message: localize('configuring.project', 'Configuring project') });
                             let retc: number;
-                            await setContextValue(IS_CONFIGURING_KEY, true);
+                            await util.setContextValue(IS_CONFIGURING_KEY, true);
                             if (type === ConfigureType.Cache) {
                                 retc = await drv.configure(trigger, [], consumer, true);
                             } else {
@@ -1289,7 +1289,7 @@ export class CMakeTools implements vscode.Disposable, api.CMakeToolsAPI {
                                         retc = await this.configureInternal(trigger, extra_args, ConfigureType.Normal);
                                         break;
                                 }
-                                await setContextValue(IS_CONFIGURING_KEY, false);
+                                await util.setContextValue(IS_CONFIGURING_KEY, false);
                             }
                             if (retc === 0) {
                                 await enableFullFeatureSet(true);
@@ -1298,14 +1298,16 @@ export class CMakeTools implements vscode.Disposable, api.CMakeToolsAPI {
 
                             await this._ctestController.reloadTests(drv);
                             this._onReconfiguredEmitter.fire();
+                            util.logElapsedTime("Configure", start);
                             return retc;
                         } finally {
-                            await setContextValue(IS_CONFIGURING_KEY, false);
+                            await util.setContextValue(IS_CONFIGURING_KEY, false);
                             progress.report({ message: localize('finishing.configure', 'Finishing configure') });
                             prog_sub.dispose();
                         }
                     } else {
                         progress.report({ message: localize('configure.failed', 'Failed to configure project') });
+                        util.logElapsedTime("Configure", start);
                         return -1;
                     }
                 });
@@ -1360,7 +1362,7 @@ export class CMakeTools implements vscode.Disposable, api.CMakeToolsAPI {
      * Wraps pre/post configure logic around an actual configure function
      * @param cb The actual configure callback. Called to do the configure
      */
-    private async _doConfigure(type: ConfigureType, progress: ProgressHandle, cb: (consumer: CMakeOutputConsumer) => Promise<number>): Promise<number> {
+    private async _doConfigure(type: ConfigureType, progress: util.ProgressHandle, cb: (consumer: CMakeOutputConsumer) => Promise<number>): Promise<number> {
         progress.report({ message: localize('saving.open.files', 'Saving open files') });
         if (!await this.maybeAutoSaveAll(type === ConfigureType.ShowCommandOnly)) {
             return -1;
@@ -1535,9 +1537,9 @@ export class CMakeTools implements vscode.Disposable, api.CMakeToolsAPI {
                     cancel.onCancellationRequested(() => rollbar.invokeAsync(localize('stop.on.cancellation', 'Stop on cancellation'), () => this.stop()));
                     log.showChannel();
                     BUILD_LOGGER.info(localize('starting.build', 'Starting build'));
-                    await setContextValue(IS_BUILDING_KEY, true);
+                    await util.setContextValue(IS_BUILDING_KEY, true);
                     const rc = await drv!.build(targets, consumer);
-                    await setContextValue(IS_BUILDING_KEY, false);
+                    await util.setContextValue(IS_BUILDING_KEY, false);
                     if (rc === null) {
                         BUILD_LOGGER.info(localize('build.was.terminated', 'Build was terminated'));
                     } else {
@@ -1550,7 +1552,7 @@ export class CMakeTools implements vscode.Disposable, api.CMakeToolsAPI {
                 }
             );
         } finally {
-            await setContextValue(IS_BUILDING_KEY, false);
+            await util.setContextValue(IS_BUILDING_KEY, false);
             this._statusMessage.set(localize('ready.status', 'Ready'));
             this._isBusy.set(false);
             consumer.dispose();
