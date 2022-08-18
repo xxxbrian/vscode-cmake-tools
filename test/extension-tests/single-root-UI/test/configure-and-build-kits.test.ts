@@ -26,7 +26,7 @@ suite('Build using Kits and Variants', () => {
 
         testEnv = new DefaultEnvironment('test/extension-tests/single-root-UI/project-folder', build_loc, exe_res);
         compdb_cp_path = path.join(testEnv.projectFolder.location, 'compdb_cp.json');
-        cmakeTools = await CMakeTools.create(testEnv.vsContext, testEnv.wsContext);
+        cmakeTools = await CMakeTools.create(testEnv.wsContext.folder, testEnv.vsContext, testEnv.wsContext);
 
         await vscode.workspace.getConfiguration('cmake', vscode.workspace.workspaceFolders![0].uri).update('useCMakePresets', 'never');
 

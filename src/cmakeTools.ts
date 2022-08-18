@@ -104,23 +104,27 @@ export class CMakeTools implements api.CMakeToolsAPI {
      *
      * This is private. You must call `create` to get an instance.
      */
-    private constructor(readonly extensionContext: vscode.ExtensionContext, readonly workspaceContext: DirectoryContext) {
+    private constructor(readonly extensionContext: vscode.ExtensionContext, readonly workspaceContext: DirectoryContext, folder?: vscode.WorkspaceFolder) {
         // Handle the active kit changing. We want to do some updates and teardown
         log.debug(localize('constructing.cmaketools', 'Constructing new CMakeTools instance'));
+        this.folder = folder ? folder : this.workspaceContext.folder;
+        this.variantManager = new VariantManager(this.folder, this.workspaceContext.state, this.workspaceContext.config);
     }
 
     /**
-     * The workspace folder associated with this CMakeTools instance
+     * The folder associated with this CMakeTools instance
      */
-    get folder(): vscode.WorkspaceFolder {
-        return this.workspaceContext.folder;
-    }
+    private folder: vscode.WorkspaceFolder;
 
     /**
-     * The name of the workspace folder for this CMakeTools instance
+     * The name of the folder for this CMakeTools instance
      */
     get folderName(): string {
         return this.folder.name;
+    }
+
+    get workspaceFolder(): vscode.WorkspaceFolder {
+        return this.workspaceContext.folder;
     }
 
     /**
@@ -199,7 +203,7 @@ export class CMakeTools implements api.CMakeToolsAPI {
             log.debug(localize('resolving.config.preset', 'Resolving the selected configure preset'));
             const expandedConfigurePreset = await preset.expandConfigurePreset(this.folder.uri.fsPath,
                 configurePreset,
-                lightNormalizePath(this.folder.uri.fsPath || '.'),
+                lightNormalizePath(this.workspaceFolder.uri.fsPath || '.'),
                 this.sourceDir,
                 this.getPreferredGeneratorName(),
                 true);
@@ -267,7 +271,7 @@ export class CMakeTools implements api.CMakeToolsAPI {
             log.debug(localize('resolving.build.preset', 'Resolving the selected build preset'));
             const expandedBuildPreset = await preset.expandBuildPreset(this.folder.uri.fsPath,
                 buildPreset,
-                lightNormalizePath(this.folder.uri.fsPath || '.'),
+                lightNormalizePath(this.workspaceFolder.uri.fsPath || '.'),
                 this.sourceDir,
                 this.getPreferredGeneratorName(),
                 true,
@@ -329,7 +333,7 @@ export class CMakeTools implements api.CMakeToolsAPI {
             log.debug(localize('resolving.test.preset', 'Resolving the selected test preset'));
             const expandedTestPreset = await preset.expandTestPreset(this.folder.uri.fsPath,
                 testPreset,
-                lightNormalizePath(this.folder.uri.fsPath || '.'),
+                lightNormalizePath(this.workspaceFolder.uri.fsPath || '.'),
                 this.sourceDir,
                 this.getPreferredGeneratorName(),
                 true,
@@ -459,16 +463,16 @@ export class CMakeTools implements api.CMakeToolsAPI {
         await this.reloadCMakeDriver();
     });
 
-    private readonly sourceDirSub = this.workspaceContext.config.onChange('sourceDirectory', async () => {
+    /*private readonly sourceDirSub = this.workspaceContext.config.onChange('sourceDirectory', async () => {
         this._sourceDir = await util.normalizeAndVerifySourceDir(
             await expandString(this.workspaceContext.config.sourceDirectory, CMakeDriver.sourceDirExpansionOptions(this.folder.uri.fsPath))
         );
-    });
+    });*/
 
     /**
      * The variant manager keeps track of build variants. Has two-phase init.
      */
-    private readonly variantManager = new VariantManager(this.folder, this.workspaceContext.state, this.workspaceContext.config);
+    private readonly variantManager: VariantManager;
 
     /**
      * A strand to serialize operations with the CMake driver
@@ -504,7 +508,7 @@ export class CMakeTools implements api.CMakeToolsAPI {
         this.disposeEmitter.fire();
         this.termCloseSub.dispose();
         this.launchTerminals.forEach(term => term.dispose());
-        for (const sub of [this.generatorSub, this.preferredGeneratorsSub, this.communicationModeSub, this.sourceDirSub]) {
+        for (const sub of [this.generatorSub, this.preferredGeneratorsSub, this.communicationModeSub/*, this.sourceDirSub*/]) {
             sub.dispose();
         }
         rollbar.invokeAsync(localize('extension.dispose', 'Extension dispose'), () => this.asyncDispose());
@@ -609,7 +613,7 @@ export class CMakeTools implements api.CMakeToolsAPI {
                             fullPath: string;
                         }
                         const items: FileItem[] = existingCmakeListsFiles ? existingCmakeListsFiles.map<FileItem>(file => ({
-                            label: util.getRelativePath(file, this.folder.uri.fsPath) + "/CMakeLists.txt",
+                            label: util.getRelativePath(file, this.workspaceFolder.uri.fsPath) + "/CMakeLists.txt",
                             fullPath: file
                         })) : [];
                         const browse: string = localize("browse.for.cmakelists", "[Browse for CMakeLists.txt]");
@@ -642,8 +646,8 @@ export class CMakeTools implements api.CMakeToolsAPI {
                             selectedFile = selection.fullPath;
                         }
                         if (selectedFile) {
-                            const relPath = util.getRelativePath(selectedFile, this.folder.uri.fsPath);
-                            void vscode.workspace.getConfiguration('cmake', this.folder.uri).update("sourceDirectory", relPath);
+                            const relPath = util.getRelativePath(selectedFile, this.workspaceFolder.uri.fsPath);
+                            void vscode.workspace.getConfiguration('cmake', this.workspaceFolder.uri).update("sourceDirectory", relPath);
                             if (config) {
                                 // Updating sourceDirectory here, at the beginning of the configure process,
                                 // doesn't need to fire the settings change event (which would trigger unnecessarily
@@ -701,7 +705,6 @@ export class CMakeTools implements api.CMakeToolsAPI {
             throw new Error(localize('bad.cmake.executable', 'Bad CMake executable {0}.', `"${cmake.path}"`));
         }
 
-        const workspace = this.folder.uri.fsPath;
         let drv: CMakeDriver;
         const preferredGenerators = this.getPreferredGenerators();
         const preConditionHandler = async (e: CMakePreconditionProblems, config?: ConfigurationReader) => this.cmakePreConditionProblemHandler(e, true, config);
@@ -751,7 +754,7 @@ export class CMakeTools implements api.CMakeToolsAPI {
                         this.configurePreset,
                         this.buildPreset,
                         this.testPreset,
-                        workspace,
+                        this.folder.uri.fsPath,
                         preConditionHandler,
                         preferredGenerators);
                     break;
@@ -763,7 +766,7 @@ export class CMakeTools implements api.CMakeToolsAPI {
                         this.configurePreset,
                         this.buildPreset,
                         this.testPreset,
-                        workspace,
+                        this.folder.uri.fsPath,
                         preConditionHandler,
                         preferredGenerators);
                     break;
@@ -775,7 +778,7 @@ export class CMakeTools implements api.CMakeToolsAPI {
                         this.configurePreset,
                         this.buildPreset,
                         this.testPreset,
-                        workspace,
+                        this.folder.uri.fsPath,
                         preConditionHandler,
                         preferredGenerators);
             }
@@ -849,11 +852,11 @@ export class CMakeTools implements api.CMakeToolsAPI {
     /**
      * Second phase of two-phase init. Called by `create`.
      */
-    private async init() {
+    private async init(folder: string) {
         log.debug(localize('second.phase.init', 'Starting CMakeTools second-phase init'));
 
         this._sourceDir = await util.normalizeAndVerifySourceDir(
-            await expandString(this.workspaceContext.config.sourceDirectory, CMakeDriver.sourceDirExpansionOptions(this.folder.uri.fsPath))
+            await expandString(folder, CMakeDriver.sourceDirExpansionOptions(this.folder.uri.fsPath))
         );
 
         // Start up the variant manager
@@ -1118,10 +1121,10 @@ export class CMakeTools implements api.CMakeToolsAPI {
      * The purpose of making this the only way to create an instance is to prevent
      * us from creating uninitialized instances of the CMake Tools extension.
      */
-    static async create(ctx: vscode.ExtensionContext, wsc: DirectoryContext): Promise<CMakeTools> {
+    static async create(folder: vscode.WorkspaceFolder, ctx: vscode.ExtensionContext, wsc: DirectoryContext): Promise<CMakeTools> {
         log.debug(localize('safely.constructing.cmaketools', 'Safe constructing new CMakeTools instance'));
         const inst = new CMakeTools(ctx, wsc);
-        await inst.init();
+        await inst.init(folder.uri.fsPath);
         log.debug(localize('initialization.complete', 'CMakeTools instance initialization complete.'));
         return inst;
     }
@@ -1134,7 +1137,7 @@ export class CMakeTools implements api.CMakeToolsAPI {
     static async createForDirectory(folder: vscode.WorkspaceFolder, ext: vscode.ExtensionContext): Promise<CMakeTools> {
         // Create a context for the directory
         const dirContext = DirectoryContext.createForDirectory(folder, new StateManager(ext, folder));
-        return CMakeTools.create(ext, dirContext);
+        return CMakeTools.create(folder, ext, dirContext);
     }
 
     private _activeKit: Kit | null = null;

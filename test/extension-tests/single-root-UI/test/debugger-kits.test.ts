@@ -13,7 +13,7 @@ suite('Debug/Launch interface using Kits and Variants', () => {
         const exe_res = 'output.txt';
 
         testEnv = new DefaultEnvironment('test/extension-tests/single-root-UI/project-folder', build_loc, exe_res);
-        cmakeTools = await CMakeTools.create(testEnv.vsContext, testEnv.wsContext);
+        cmakeTools = await CMakeTools.create(testEnv.wsContext.folder, testEnv.vsContext, testEnv.wsContext);
 
         await vscode.workspace.getConfiguration('cmake', vscode.workspace.workspaceFolders![0].uri).update('useCMakePresets', 'never');
 

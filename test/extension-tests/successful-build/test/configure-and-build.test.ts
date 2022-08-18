@@ -27,7 +27,7 @@ suite('Build', () => {
 
         testEnv = new DefaultEnvironment('test/extension-tests/successful-build/project-folder', build_loc, exe_res);
         compdb_cp_path = path.join(testEnv.projectFolder.location, 'compdb_cp.json');
-        cmt = await CMakeTools.create(testEnv.vsContext, testEnv.wsContext);
+        cmt = await CMakeTools.create(testEnv.wsContext.folder, testEnv.vsContext, testEnv.wsContext);
 
         // This test will use all on the same kit.
         // No rescan of the tools is needed
@@ -39,7 +39,7 @@ suite('Build', () => {
     setup(async function (this: Mocha.Context) {
         this.timeout(100000);
 
-        cmt = await CMakeTools.create(testEnv.vsContext, testEnv.wsContext);
+        cmt = await CMakeTools.create(testEnv.wsContext.folder, testEnv.vsContext, testEnv.wsContext);
         const kit = await getFirstSystemKit(cmt);
         await cmt.setKit(kit);
         testEnv.projectFolder.buildDirectory.clear();

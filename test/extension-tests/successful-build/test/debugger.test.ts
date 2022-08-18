@@ -13,7 +13,7 @@ suite('Debug/Launch interface', () => {
         this.timeout(100000);
 
         testEnv = new DefaultEnvironment('test/extension-tests/successful-build/project-folder', 'build', 'output.txt');
-        cmt = await CMakeTools.create(testEnv.vsContext, testEnv.wsContext);
+        cmt = await CMakeTools.create(testEnv.wsContext.folder, testEnv.vsContext, testEnv.wsContext);
         await cmt.setKit(await getFirstSystemKit(cmt));
         testEnv.projectFolder.buildDirectory.clear();
         expect(await cmt.build()).to.be.eq(0);
