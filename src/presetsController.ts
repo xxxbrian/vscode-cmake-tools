@@ -41,7 +41,8 @@ export class PresetsController {
     static async init(cmakeTools: CMakeTools, kitsController: KitsController): Promise<PresetsController> {
         const presetsController = new PresetsController(cmakeTools, kitsController);
         const expandSourceDir = async (dir: string) => {
-            const workspaceFolder = cmakeTools.folder.uri.fsPath;
+            const workspaceFolder = cmakeTools.workspaceFolder.uri.fsPath;
+            const sourceDirectory = cmakeTools.folder.uri.fsPath;
             const expansionOpts: ExpansionOptions = {
                 vars: {
                     workspaceFolder,
@@ -50,6 +51,7 @@ export class PresetsController {
                     workspaceRoot: workspaceFolder,
                     workspaceRootFolderName: path.dirname(workspaceFolder),
                     userHome: paths.userHome,
+                    sourceDirectory: sourceDirectory,
                     // Following fields are not supported for sourceDir expansion
                     generator: '${generator}',
                     sourceDir: '${sourceDir}',
@@ -61,7 +63,8 @@ export class PresetsController {
             return util.normalizeAndVerifySourceDir(await expandString(dir, expansionOpts));
         };
 
-        presetsController._sourceDir = await expandSourceDir(cmakeTools.workspaceContext.config.sourceDirectory);
+        //presetsController._sourceDir = await expandSourceDir(cmakeTools.workspaceContext.config.sourceDirectory);
+        presetsController._sourceDir = await expandSourceDir(cmakeTools.folder.uri.fsPath);
 
         // We explicitly read presets file here, instead of on the initialization of the file watcher. Otherwise
         // there might be timing issues, since listeners are invoked async.

@@ -38,8 +38,8 @@ export class CMakeLegacyDriver extends CMakeDriver {
         throw new Error('Method not implemented.');
     }
 
-    private constructor(cmake: CMakeExecutable, readonly config: ConfigurationReader, workspaceFolder: string | null, preconditionHandler: CMakePreconditionProblemSolver) {
-        super(cmake, config, workspaceFolder, preconditionHandler);
+    private constructor(cmake: CMakeExecutable, readonly config: ConfigurationReader, workspaceFolder: string | null, sourceDirectory: string, preconditionHandler: CMakePreconditionProblemSolver) {
+        super(cmake, config, workspaceFolder, sourceDirectory, preconditionHandler);
     }
 
     private _needsReconfigure = true;
@@ -143,10 +143,11 @@ export class CMakeLegacyDriver extends CMakeDriver {
         buildPreset: BuildPreset | null,
         testPreset: TestPreset | null,
         workspaceFolder: string | null,
+        sourceDirectory: string,
         preconditionHandler: CMakePreconditionProblemSolver,
         preferredGenerators: CMakeGenerator[]): Promise<CMakeLegacyDriver> {
         log.debug(localize('creating.instance.of', 'Creating instance of {0}', "LegacyCMakeDriver"));
-        return this.createDerived(new CMakeLegacyDriver(cmake, config, workspaceFolder, preconditionHandler),
+        return this.createDerived(new CMakeLegacyDriver(cmake, config, workspaceFolder, sourceDirectory, preconditionHandler),
             useCMakePresets,
             kit,
             configurePreset,

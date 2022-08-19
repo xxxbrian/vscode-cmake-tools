@@ -38,8 +38,8 @@ export class CMakeServerDriver extends CMakeDriver {
         throw new Error('Method not implemented.');
     }
 
-    private constructor(cmake: CMakeExecutable, readonly config: ConfigurationReader, workspaceFolder: string | null, preconditionHandler: CMakePreconditionProblemSolver) {
-        super(cmake, config, workspaceFolder, preconditionHandler);
+    private constructor(cmake: CMakeExecutable, readonly config: ConfigurationReader, workspaceFolder: string | null, sourceDirectory: string, preconditionHandler: CMakePreconditionProblemSolver) {
+        super(cmake, config, workspaceFolder, sourceDirectory, preconditionHandler);
         this.config.onChange('environment', () => this._restartClient());
         this.config.onChange('configureEnvironment', () => this._restartClient());
     }
@@ -449,9 +449,10 @@ export class CMakeServerDriver extends CMakeDriver {
         buildPreset: BuildPreset | null,
         testPreset: TestPreset | null,
         workspaceFolder: string | null,
+        sourceDirectory: string,
         preconditionHandler: CMakePreconditionProblemSolver,
         preferredGenerators: CMakeGenerator[]): Promise<CMakeServerDriver> {
-        return this.createDerived(new CMakeServerDriver(cmake, config, workspaceFolder, preconditionHandler),
+        return this.createDerived(new CMakeServerDriver(cmake, config, workspaceFolder, sourceDirectory, preconditionHandler),
             useCMakePresets,
             kit,
             configurePreset,

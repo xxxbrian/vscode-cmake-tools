@@ -30,6 +30,8 @@ interface RequiredExpansionContextVars {
     workspaceRoot: string;
     workspaceRootFolderName: string;
     userHome: string;
+    // Path to the project source directory. sourceDirectory can be different from workspaceFolder.
+    sourceDirectory: string;
 }
 
 export interface KitContextVars extends RequiredExpansionContextVars {
@@ -48,7 +50,7 @@ export interface KitContextVars extends RequiredExpansionContextVars {
 
 export interface PresetContextVars extends RequiredExpansionContextVars {
     [key: string]: string;
-    sourceDir: string;
+    sourceDir: string; // Path to the project source directory (i.e. the same as CMAKE_SOURCE_DIR).
     sourceParentDir: string;
     sourceDirName: string;
     presetName: string;

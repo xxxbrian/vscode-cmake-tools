@@ -578,6 +578,7 @@ async function getExpansionOptions(workspaceFolder: string, sourceDir: string, p
             workspaceRoot: workspaceFolder,
             workspaceRootFolderName: path.dirname(workspaceFolder),
             userHome: paths.userHome,
+            sourceDirectory: sourceDir,
             sourceDir,
             sourceParentDir: path.dirname(sourceDir),
             sourceDirName: path.basename(sourceDir),

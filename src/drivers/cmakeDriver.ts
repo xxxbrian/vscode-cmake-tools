@@ -145,7 +145,8 @@ export abstract class CMakeDriver implements vscode.Disposable {
      */
     protected constructor(public readonly cmake: CMakeExecutable,
         readonly config: ConfigurationReader,
-        private readonly __workspaceFolder: string | null,
+        private readonly _workspaceFolder: string | null,
+        private readonly _folder: string,
         readonly preconditionHandler: CMakePreconditionProblemSolver) {
         // We have a cache of file-compilation terminals. Wipe them out when the
         // user closes those terminals.
@@ -272,6 +273,10 @@ export abstract class CMakeDriver implements vscode.Disposable {
         return this._testPreset;
     }
 
+    get folder() {
+        return this._folder;
+    }
+
     /**
      * Get the vscode root workspace folder.
      *
@@ -279,8 +284,19 @@ export abstract class CMakeDriver implements vscode.Disposable {
      * `file://` scheme.
      */
     protected get workspaceFolder() {
-        return this.__workspaceFolder;
+        return this._workspaceFolder;
     }
+
+    /**
+     * The source directory, where the root CMakeLists.txt lives.
+     *
+     * @note This is distinct from the config values, since we do variable
+     * substitution.
+     */
+    get sourceDir(): string {
+        return this._sourceDirectory;
+    }
+    private _sourceDirectory = '';
 
     protected variantKeywordSettings: Map<string, string> | null = null;
 
@@ -288,7 +304,8 @@ export abstract class CMakeDriver implements vscode.Disposable {
      * The options that will be passed to `expand.expandString` for this driver.
      */
     get expansionOptions(): expand.ExpansionOptions {
-        const ws_root = util.lightNormalizePath(this.workspaceFolder || '.');
+        const workspaceFolder = util.lightNormalizePath(this.workspaceFolder || '.');
+        const sourceDirectory = this.folder || '.';
         const target: Partial<TargetTriple> = parseTargetTriple(this._kitDetect?.triple ?? '') ?? {};
         const version = this._kitDetect?.version ?? '0.0';
 
@@ -297,12 +314,13 @@ export abstract class CMakeDriver implements vscode.Disposable {
             buildKit: this._kit ? this._kit.name : '__unknownkit__',
             buildType: this.currentBuildType,
             generator: this.generatorName || 'null',
-            workspaceFolder: ws_root,
-            workspaceFolderBasename: path.basename(ws_root),
-            workspaceHash: util.makeHashString(ws_root),
-            workspaceRoot: ws_root,
-            workspaceRootFolderName: path.basename(ws_root),
+            workspaceFolder: workspaceFolder,
+            workspaceFolderBasename: path.basename(workspaceFolder),
+            workspaceHash: util.makeHashString(workspaceFolder),
+            workspaceRoot: workspaceFolder,
+            workspaceRootFolderName: path.basename(workspaceFolder),
             userHome: paths.userHome,
+            sourceDirectory: sourceDirectory,
             buildKitVendor: this._kitDetect?.vendor ?? '__unknow_vendor__',
             buildKitTriple: this._kitDetect?.triple ?? '__unknow_triple__',
             buildKitVersion: version,
@@ -326,17 +344,18 @@ export abstract class CMakeDriver implements vscode.Disposable {
     }
 
     static sourceDirExpansionOptions(workspaceFolderFspath: string | null): expand.ExpansionOptions {
-        const ws_root = util.lightNormalizePath(workspaceFolderFspath || '.');
+        const workspaceFolder = util.lightNormalizePath(workspaceFolderFspath || '.');
 
         // Fill in default replacements
         const vars: expand.MinimalPresetContextVars = {
             generator: 'generator',
-            workspaceFolder: ws_root,
-            workspaceFolderBasename: path.basename(ws_root),
-            workspaceHash: util.makeHashString(ws_root),
-            workspaceRoot: ws_root,
-            workspaceRootFolderName: path.basename(ws_root),
-            userHome: paths.userHome
+            workspaceFolder: workspaceFolder,
+            workspaceFolderBasename: path.basename(workspaceFolder),
+            workspaceHash: util.makeHashString(workspaceFolder),
+            workspaceRoot: workspaceFolder,
+            workspaceRootFolderName: path.basename(workspaceFolder),
+            userHome: paths.userHome,
+            sourceDirectory: workspaceFolder
         };
 
         return { vars };
@@ -601,24 +620,13 @@ export abstract class CMakeDriver implements vscode.Disposable {
         await this._refreshExpansions();
     }
 
-    /**
-     * The source directory, where the root CMakeLists.txt lives.
-     *
-     * @note This is distinct from the config values, since we do variable
-     * substitution.
-     */
-    get sourceDir(): string {
-        return this._sourceDirectory;
-    }
-    private _sourceDirectory = '';
-
     protected doRefreshExpansions(cb: () => Promise<void>): Promise<void> {
         return cb();
     }
 
     private async _refreshExpansions() {
         return this.doRefreshExpansions(async () => {
-            this._sourceDirectory = await util.normalizeAndVerifySourceDir(await expand.expandString(this.config.sourceDirectory, CMakeDriver.sourceDirExpansionOptions(this.workspaceFolder)));
+            this._sourceDirectory = await util.normalizeAndVerifySourceDir(await expand.expandString(this._folder, CMakeDriver.sourceDirExpansionOptions(this.workspaceFolder)));
 
             const opts = this.expansionOptions;
             opts.envOverride = await this.getConfigureEnvironment();
