@@ -3,8 +3,6 @@
 ## 1.13.44
 Bug Fixes:
 - Compatibility between test and build presets was not enforced. [#2904](https://github.com/microsoft/vscode-cmake-tools/issues/2904)
-
-## 1.13.44
 Bug Fixes:
 - Validate presets in initialization. [#2976](https://github.com/microsoft/vscode-cmake-tools/issues/2976)
 
