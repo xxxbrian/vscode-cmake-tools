@@ -692,6 +692,58 @@
         "title": "%cmake-tools.command.cmake.outline.revealInCMakeLists.title%"
       },
       {
+        "command": "cmake.tasks.openTasksJson",
+        "when": "cmake:enableFullFeatureSet",
+        "title": "%cmake-tools.command.cmake.tasks.openTasksJson.title%",
+        "category": "CMake",
+        "icon": {
+          "dark": "res/dark/json-icon.svg",
+          "light": "res/light/json-icon.svg"
+        }
+      },
+      {
+        "command": "cmake.tasks.build",
+        "when": "cmake:enableFullFeatureSet",
+        "title": "%cmake-tools.command.cmake.tasks.build.title%",
+        "category": "CMake",
+        "icon": "$(run)"
+      },
+      {
+        "command": "cmake.tasks.configure",
+        "when": "cmake:enableFullFeatureSet",
+        "title": "%cmake-tools.command.cmake.tasks.configure.title%",
+        "category": "CMake",
+        "icon": "$(run)"
+      },
+      {
+        "command": "cmake.tasks.install",
+        "when": "cmake:enableFullFeatureSet",
+        "title": "%cmake-tools.command.cmake.tasks.install.title%",
+        "category": "CMake",
+        "icon": "$(run)"
+      },
+      {
+        "command": "cmake.tasks.test",
+        "when": "cmake:enableFullFeatureSet",
+        "title": "%cmake-tools.command.cmake.tasks.test.title%",
+        "category": "CMake",
+        "icon": "$(run)"
+      },
+      {
+        "command": "cmake.tasks.clean",
+        "when": "cmake:enableFullFeatureSet",
+        "title": "%cmake-tools.command.cmake.tasks.clean.title%",
+        "category": "CMake",
+        "icon": "$(run)"
+      },
+      {
+        "command": "cmake.tasks.cleanRebuild",
+        "when": "cmake:enableFullFeatureSet",
+        "title": "%cmake-tools.command.cmake.tasks.cleanRebuild.title%",
+        "category": "CMake",
+        "icon": "$(run)"
+      },
+      {
         "command": "cmake.projectStatus.update",
         "when": "cmake:enableFullFeatureSet",
         "title": "%cmake-tools.command.cmake.projectStatus.update.title%",
@@ -1269,6 +1321,34 @@
           "when": "never"
         },
         {
+          "command": "cmake.tasks.openTasksJson",
+          "when": "never"
+        },
+        {
+          "command": "cmake.tasks.build",
+          "when": "never"
+        },
+        {
+          "command": "cmake.tasks.configure",
+          "when": "never"
+        },
+        {
+          "command": "cmake.tasks.install",
+          "when": "never"
+        },
+        {
+          "command": "cmake.tasks.test",
+          "when": "never"
+        },
+        {
+          "command": "cmake.tasks.clean",
+          "when": "never"
+        },
+        {
+          "command": "cmake.tasks.cleanRebuild",
+          "when": "never"
+        },
+        {
           "command": "cmake.projectStatus.update",
           "when": "never"
         },
@@ -1366,6 +1446,11 @@
           "command": "cmake.projectStatus.openSettings",
           "when": "view == cmake.projectStatus && cmake:enableFullFeatureSet",
           "group": "navigation@4"
+        },
+        {
+          "command": "cmake.tasks.openTasksJson",
+          "when": "view == cmake.tasks && cmake:enableFullFeatureSet",
+          "group": "navigation@1"
         },
         {
           "command": "cmake.outline.configureAll",
@@ -1507,6 +1592,41 @@
         {
           "command": "cmake.projectStatus.selectActiveProject",
           "when": "view == cmake.projectStatus && cmake:enableFullFeatureSet && viewItem == 'activeProject'",
+          "group": "inline"
+        },
+        {
+          "command": "cmake.tasks.openTasksJson",
+          "when": "view == cmake.tasks && cmake:enabelFullFeatureSet && viewItem == 'openTasksJson'",
+          "group": "inline"
+        },
+        {
+          "command": "cmake.tasks.build",
+          "when": "view == cmake.tasks && cmake:enableFullFeatureSet && viewItem == 'build'",
+          "group": "inline"
+        },
+        {
+          "command": "cmake.tasks.configure",
+          "when": "view == cmake.tasks && cmake:enableFullFeatureSet && viewItem == 'configure'",
+          "group": "inline"
+        },
+        {
+          "command": "cmake.tasks.install",
+          "when": "view == cmake.tasks && cmake:enableFullFeatureSet && viewItem == 'install'",
+          "group": "inline"
+        },
+        {
+          "command": "cmake.tasks.test",
+          "when": "view == cmake.tasks && cmake:enableFullFeatureSet && viewItem == 'test'",
+          "group": "inline"
+        },
+        {
+          "command": "cmake.tasks.clean",
+          "when": "view == cmake.tasks && cmake:enableFullFeatureSet && viewItem == 'clean'",
+          "group": "inline"
+        },
+        {
+          "command": "cmake.tasks.cleanRebuild",
+          "when": "view == cmake.tasks && cmake:enableFullFeatureSet && viewItem == 'cleanRebuild'",
           "group": "inline"
         },
         {
@@ -2924,6 +3044,11 @@
         {
           "id": "cmake.projectStatus",
           "name": "%cmake-tools.configuration.views.cmake.projectStatus.description%",
+          "when": "cmake:enableFullFeatureSet"
+        },
+        {
+          "id": "cmake.tasks",
+          "name": "%cmake-tools.configuration.views.cmake.tasks.description%",
           "when": "cmake:enableFullFeatureSet"
         },
         {
