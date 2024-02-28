@@ -671,6 +671,10 @@ class PackageNode extends Node {
         return this.initialize();
     }
 
+    async refresh(): Promise<void> {
+        await this.packagePreset?.refresh();
+    }
+
 }
 
 class WorkflowNode extends Node {
