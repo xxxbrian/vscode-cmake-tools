@@ -2028,6 +2028,10 @@ export class ExtensionManager implements vscode.Disposable {
         return presetSelected;
     }
 
+    
+    viewPackageSettings(): void {
+        void vscode.commands.executeCommand('workbench.action.openSettings', '@id:cmake.cpackArgs, @id:cmake.cpackEnvironment, @id:cmake.environment');
+    }
     /**
      * Show UI to allow the user to select an active workflow preset
      */
@@ -2142,6 +2146,7 @@ async function setup(context: vscode.ExtensionContext, progress?: ProgressHandle
         'selectTestPreset',
         'viewTestSettings',
         'selectPackagePreset',
+        'viewPackageSettings',
         'selectWorkflowPreset',
         'selectActiveFolder',
         'editKits',

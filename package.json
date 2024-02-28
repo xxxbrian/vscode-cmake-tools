@@ -1730,13 +1730,13 @@
           "group": "inline"
         },
         {
-          "command": "cmake.projectStatus.viewPackageSettings",
-          "when": "view == cmake.projectStatus && cmake:enableFullFeatureSet && viewItem == 'packagePreset - overrides present'",
+          "command": "cmake.projectStatus.selectPackagePreset",
+          "when": "view == cmake.projectStatus && cmake:enableFullFeatureSet && viewItem == 'packagePreset'",
           "group": "inline"
         },
         {
-          "command": "cmake.projectStatus.selectPackagePreset",
-          "when": "view == cmake.projectStatus && cmake:enableFullFeatureSet && viewItem == 'packagePreset'",
+          "command": "cmake.projectStatus.viewPackageSettings",
+          "when": "view == cmake.projectStatus && cmake:enableFullFeatureSet && viewItem == 'packagePreset - overrides present'",
           "group": "inline"
         },
         {

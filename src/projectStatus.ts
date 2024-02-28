@@ -92,6 +92,9 @@ export class ProjectStatus {
                 await runCommand('selectPackagePreset');
                 await this.refresh(node);
             }),
+            vscode.commands.registerCommand('cmake.projectStatus.viewPackageSettings', async (_node: Node) => {
+                await runCommand('viewPackageSettings');
+            }),
             vscode.commands.registerCommand('cmake.projectStatus.selectWorkflowPreset', async (node: Node) => {
                 await runCommand('selectWorkflowPreset');
                 await this.refresh(node);
