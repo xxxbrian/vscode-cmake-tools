@@ -5,6 +5,7 @@
 Bug Fixes:
 
 - Fix localization issue in package.json [#3616](https://github.com/microsoft/vscode-cmake-tools/issues/3616)
+- Fix incorrect test output [#3591](https://github.com/microsoft/vscode-cmake-tools/issues/3591)
 
 ## 1.17.17
 
