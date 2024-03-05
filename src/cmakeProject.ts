@@ -737,8 +737,7 @@ export class CMakeProject {
         // Force re-reading of cmake exe, this will ensure that the debugger capabilities are updated.
         const cmakeInfo = await this.getCMakeExecutable();
         if (!cmakeInfo.isPresent) {
-            void vscode.window.showErrorMessage(localize('bad.executable', 'Bad CMake executable: {0}. Check to make sure it is installed or the value of the {1} setting contains the correct path', `"${cmakeInfo.path}"`, '"cmake.cmakePath"'));
-            telemetry.logEvent('CMakeExecutableNotFound');
+            await this.ShowBadCMakeError(localize('bad.executable', 'Bad CMake executable: {0}. Check to make sure it is installed or the value of the {1} setting contains the correct path', `"${cmakeInfo.path}"`, '"cmake.cmakePath"'));
         }
 
         await this.reloadCMakeDriver();
@@ -946,6 +945,7 @@ export class CMakeProject {
     private async startNewCMakeDriver(cmake: CMakeExecutable): Promise<CMakeDriver> {
         log.debug(localize('starting.cmake.driver', 'Starting CMake driver'));
         if (!cmake.isPresent) {
+            // TODO: is this a valid entrypoint for cmake install workflow?
             throw new Error(localize('bad.cmake.executable', 'Bad CMake executable {0}.', `"${cmake.path}"`));
         }
 
@@ -1290,6 +1290,17 @@ export class CMakeProject {
         return cmakeExe;
     }
 
+    async ShowBadCMakeError(msg: string) {
+        void vscode.window.showErrorMessage(msg, ...['Install CMake', 'Go To Settings']).then(
+            async(selection) => {
+                if (selection !== undefined) {
+                    // TODO command for install cmake. This is WIP.
+                    await vscode.commands.executeCommand('workbench.action.openSettings', 'cmake.options');
+                }
+            });
+        telemetry.logEvent('CMakeExecutableNotFound');
+    }
+
     /**
      * Returns, if possible a cmake driver instance. To creation the driver instance,
      * there are preconditions that should be fulfilled, such as an active kit is selected.
@@ -1307,8 +1318,7 @@ export class CMakeProject {
 
             const cmake = await this.getCMakeExecutable();
             if (!cmake.isPresent) {
-                void vscode.window.showErrorMessage(localize('bad.executable', 'Bad CMake executable: {0}. Check to make sure it is installed or the value of the {1} setting contains the correct path', `"${cmake.path}"`, '"cmake.cmakePath"'));
-                telemetry.logEvent('CMakeExecutableNotFound');
+                this.ShowBadCMakeError(localize('bad.executable', 'Bad CMake executable: {0}. Check to make sure it is installed or the value of the {1} setting contains the correct path', `"${cmake.path}"`, '"cmake.cmakePath"');
                 return null;
             }
 
