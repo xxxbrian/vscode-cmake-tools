@@ -1293,8 +1293,9 @@ export class CMakeProject {
     async ShowBadCMakeError(msg: string) {
         void vscode.window.showErrorMessage(msg, ...['Install CMake', 'Go To Settings']).then(
             async(selection) => {
-                if (selection !== undefined) {
-                    // TODO command for install cmake. This is WIP.
+                if (selection === "Install CMake") {
+                    await vscode.commands.executeCommand("cmake.installCMake");
+                } else if (selection === "Go To Settings") {
                     await vscode.commands.executeCommand('workbench.action.openSettings', 'cmake.options');
                 }
             });
@@ -1318,7 +1319,7 @@ export class CMakeProject {
 
             const cmake = await this.getCMakeExecutable();
             if (!cmake.isPresent) {
-                this.ShowBadCMakeError(localize('bad.executable', 'Bad CMake executable: {0}. Check to make sure it is installed or the value of the {1} setting contains the correct path', `"${cmake.path}"`, '"cmake.cmakePath"');
+                await this.ShowBadCMakeError(localize('bad.executable', 'Bad CMake executable: {0}. Check to make sure it is installed or the value of the {1} setting contains the correct path', `"${cmake.path}"`, '"cmake.cmakePath"'));
                 return null;
             }
 

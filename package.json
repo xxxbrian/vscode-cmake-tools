@@ -207,6 +207,12 @@
         "category": "CMake"
       },
       {
+        "command": "cmake.installCMake",
+        "title": "%cmake-tools.command.cmake.installCMake.title%",
+        "when": "cmake:enableFullFeatureSet",
+        "category": "CMake"
+      },
+      {
         "command": "cmake.logDiagnostics",
         "title": "%cmake-tools.command.cmake.logDiagnostics.title%",
         "when": "cmake:enableFullFeatureSet",

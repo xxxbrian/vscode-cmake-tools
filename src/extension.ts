@@ -46,6 +46,7 @@ import { PinnedCommands } from './pinnedCommands';
 import { StatusBar } from '@cmt/status';
 import { DebugAdapterNamedPipeServerDescriptorFactory } from './debug/debugAdapterNamedPipeServerDescriptorFactory';
 import { getCMakeExecutableInformation } from './cmake/cmakeExecutable';
+import { startCMakeAcquisition } from './cmake/cmakeExecutable';
 import { DebuggerInformation, getDebuggerPipeName } from './debug/debuggerConfigureDriver';
 import { DebugConfigurationProvider, DynamicDebugConfigurationProvider } from './debug/debugConfigurationProvider';
 import { deIntegrateTestExplorer } from './ctest';
@@ -1722,6 +1723,12 @@ export class ExtensionManager implements vscode.Disposable {
         void vscode.commands.executeCommand('workbench.action.openSettings', '@ext:ms-vscode.cmake-tools');
     }
 
+    async installCMake() {
+        // todo
+        telemetry.logEvent("installCMake");
+        await startCMakeAcquisition();
+    }
+
     async viewLog() {
         telemetry.logEvent("openLogFile");
         await logging.showLogFile();
@@ -2230,7 +2237,8 @@ async function setup(context: vscode.ExtensionContext, progress?: ProgressHandle
         'tasksBuildCommand',
         'hideLaunchCommand',
         'hideDebugCommand',
-        'hideBuildCommand'
+        'hideBuildCommand',
+        'installCMake'
         // 'toggleCoverageDecorations', // XXX: Should coverage decorations be revived?
     ];
 
