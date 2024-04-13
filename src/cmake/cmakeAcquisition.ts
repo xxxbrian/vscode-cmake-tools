@@ -14,8 +14,18 @@ class Win32Installer implements ICMakeInstaller {
     platform = "win32";
     isSupported = true;
 
-    BeginInstall() {
+    // TODO: Figure out progress reporting and asynchrony here.
+    async BeginInstall() {
+        // Happy path for 94% of users: winget.
+        const cmd = proc.execute("cmd.exe", ["winget -v"]);
+        const res = await cmd.result;
+        // TODO consider testing version of winget and updating. Use res.stdout parse version.
+        if (res.retc !== 0) {
+            // No winget. TODO handle this case.
+        }
 
+        const winget = proc.execute("cmd.exe", ["winget install -e --id Kitware.CMake"]); // this can be cancelled by sending ctrl+c.
+        const result = await winget.result;
     }
 
     CancelInstall(): boolean {
