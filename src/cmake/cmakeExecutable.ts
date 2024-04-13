@@ -71,8 +71,3 @@ export async function getCMakeExecutableInformation(path: string): Promise<CMake
 export async function setCMakeDebuggerAvailableContext(value: boolean): Promise<void> {
     await setContextAndStore("cmake:cmakeDebuggerAvailable", value);
 }
-
-// todo is this the right location for this?
-export async function startCMakeAcquisition() {
-    telemetry.logEvent("we made it here");
-}
