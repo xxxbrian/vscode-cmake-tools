@@ -589,6 +589,11 @@ export class ExtensionManager implements vscode.Disposable {
             vscode.workspace.workspaceFolders[0] === rootFolder &&
             await scanForKitsIfNeeded(project);
 
+        //TODO: Possible quick picks that are interfering with quickstart.
+        // 1. CMakeLists.txt asking for where it's at
+        // 2. Asking for kits, only ever gotten it to repro on a fresh install.
+        // 3. Asking for whether you want to configure this folder with CMake Tools.
+
         let shouldConfigure = project?.workspaceContext.config.configureOnOpen;
         if (shouldConfigure === null && !util.isTestMode()) {
             interface Choice1 {
@@ -1543,8 +1548,14 @@ export class ExtensionManager implements vscode.Disposable {
         return this.runCMakeCommandForAll(cmakeProject => cmakeProject.stop());
     }
 
+    quickStartEventEmitter = new vscode.EventEmitter<void>();
+    public get onQuickStartEvent(): vscode.Event<void> {
+        return this.quickStartEventEmitter.event;
+    }
+
     quickStart(folder?: vscode.WorkspaceFolder) {
         telemetry.logEvent("quickStart");
+        this.quickStartEventEmitter.fire();
         return this.runCMakeCommandForProject(cmakeProject => cmakeProject.quickStart(folder));
     }
 
