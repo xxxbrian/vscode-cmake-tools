@@ -7,6 +7,8 @@ import * as nls from 'vscode-nls';
 import * as logging from '@cmt/logging';
 import { CMakeInstallerOutputConsumer } from '@cmt/cmake/cmakeInstallerOutputConsumer';
 import { Exception } from 'handlebars';
+import { ExecutionOptions } from '@cmt/preset';
+import * as fs from 'fs';
 
 nls.config({ messageFormat: nls.MessageFormat.bundle, bundleFormat: nls.BundleFormat.standalone })();
 const localize: nls.LocalizeFunc = nls.loadMessageBundle();
@@ -136,9 +138,70 @@ class LinuxInstaller extends BaseInstaller {
         out.appendLine(localize("cmakeInstall.Begin", "Beginning CMake Installation..."));
         out.show();
 
-        out.appendLine("HELLO LINUX WE ARE HERE");
+        out.appendLine("HELLO LINUX WE ARE HERE"); // TODO remove. just testing.
+
+        // Create progress reporter?
+
+        const output = new CMakeInstallerOutputConsumer(out);
+        const execOpt: proc.ExecutionOptions = { showOutputOnError: true };
+
+        await this.InstallCMake(output, execOpt);
+        await this.InstallNinja(output, execOpt);
+
+        // report progress
 
         return false; // TODO
+    }
+
+    async IsInstalledAndDiscoverable(program: string, output: proc.OutputConsumer, execOpt: ExecutionOptions): Promise<boolean> {
+        const cmd = "-c " + program + " -v";
+        const shell = proc.execute("sh", [cmd], output, execOpt);
+
+        return (await shell.result).retc === 0;
+    }
+
+    GetPlatform(): string {
+        return "x64"; // TODO
+    }
+
+    GetDownloadLinkForPlatform(platform: string) {
+        if (platform.includes("arm64")) {
+            return "https://aka.ms/vslinux-cmake-3.19-aarch64";
+        } else if (platform.includes("x64")) {
+            return "https://aka.ms/vslinux-cmake-3.19-x86_64";
+        }
+
+        throw new Exception("Unsupported platform");
+    }
+
+    async InstallCMake(out: proc.OutputConsumer, execOpt: proc.ExecutionOptions): Promise<boolean> {
+
+        if (await this.IsInstalledAndDiscoverable("cmake", out, execOpt)) {
+            return true;
+        }
+
+        // URL to CMake-provided security hash to validate binary download
+        const cmakeBinarySHA = "https://aka.ms/vslinux-cmake-3.19-SHA-verify";
+
+        const platform = this.GetPlatform();
+        const downloadLink = this.GetDownloadLinkForPlatform(platform);
+
+        // Download binary
+
+        return true;
+    }
+
+    async InstallNinja(out: proc.OutputConsumer, execOpt: proc.ExecutionOptions): Promise<boolean> {
+        if (await this.IsInstalledAndDiscoverable("ninja", out, execOpt)) {
+            return true;
+        }
+
+        // Install locally from github
+        return true;
+    }
+
+    async ValidateInstallation(): Promise<boolean> {
+        return true; // TODO implement
     }
 
     async CancelInstall(): Promise<boolean> {
