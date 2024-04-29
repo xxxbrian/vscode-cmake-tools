@@ -17,40 +17,25 @@ export interface ICMakeInstaller {
     platform: string;
     isSupported: boolean;
     BeginInstall(): Promise<boolean>;
-    CancelInstall(): boolean;
+    IsPkgManagerInstalled(): Promise<boolean>;
+    CancelInstall(): Promise<boolean>;
     GetUserConsent(): Promise<boolean>;
 }
 
-class Win32Installer implements ICMakeInstaller {
-    platform = "win32";
+export abstract class BaseInstaller implements ICMakeInstaller {
+    platform = "base";
     isSupported = true;
 
-    async BeginInstall(): Promise<boolean>  {
-        // Happy path for 94% of users: winget.
-        const out = vscode.window.createOutputChannel("CMakeInstallation");
-        out.appendLine("Beginning CMake Installation...");
-        out.show();
-        const res = await proc.execute('cmd', ['/C winget -v']).result;
-        if (res.retc !== 0) {
-            // No winget, or update needed . TODO handle this case, instructions to download?
-        }
-        out.appendLine(res.stdout);
-        const output = new CMakeInstallerOutputConsumer(out);
-        const execOpt: proc.ExecutionOptions = { showOutputOnError: true };
-        const winget = proc.execute("cmd", ["/C winget install -e --id Kitware.CMake"], output, execOpt);
-        // TODO: this can be cancelled by sending ctrl+c, would need to use child_process with stdin enabled to send.
-        // proc.execute currently disables stdin.
+    async IsPkgManagerInstalled(): Promise<boolean> {
+        return true;
+    }
 
-        const r = await vscode.window.withProgress({
-            location: vscode.ProgressLocation.Notification,
-            cancellable: false, // TODO relocate to make cancellable? need custom UI?
-            title: 'Installing CMake'
-        }, async pr => {
-            pr.report({  message: "Installing CMake with winget..."});
-            return (await winget.result).retc;
-        });
+    async BeginInstall(): Promise<boolean> {
+        return this.IsPkgManagerInstalled();
+    }
 
-        return r === 0;
+    CancelInstall(): Promise<boolean> {
+        throw new Exception("NotImplemented");
     }
 
     async GetUserConsent(): Promise<boolean> {
@@ -75,13 +60,61 @@ class Win32Installer implements ICMakeInstaller {
         }
         return chosen.action === "install";
     }
+}
 
-    CancelInstall(): boolean {
+class Win32Installer extends BaseInstaller {
+    platform = "win32";
+    isSupported = true;
+
+    async BeginInstall(): Promise<boolean>  {
+        // Happy path for 94% of users: winget.
+        const out = vscode.window.createOutputChannel("CMakeInstallation");
+        out.appendLine(localize("cmakeInstall.Begin", "Beginning CMake Installation..."));
+        out.show();
+        const res = await proc.execute('cmd', ['/C winget -v']).result;
+        if (res.retc !== 0) {
+            // No winget, or update needed . TODO handle this case, instructions to download?
+        }
+        out.appendLine(res.stdout);
+        const output = new CMakeInstallerOutputConsumer(out);
+        const execOpt: proc.ExecutionOptions = { showOutputOnError: true };
+        const winget = proc.execute("cmd", ["/C winget install -e --id Kitware.CMake"], output, execOpt);
+        // TODO: this can be cancelled by sending ctrl+c, would need to use child_process with stdin enabled to send.
+        // proc.execute currently disables stdin.
+        // TODO Ninja-build.Ninja
+        // add to progress reporting
+
+        const r = await vscode.window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            cancellable: false, // TODO relocate to make cancellable? need custom UI?
+            title: 'Installing CMake'
+        }, async pr => {
+            pr.report({  message: "Installing CMake with winget..."});
+            return (await winget.result).retc;
+        });
+
+        return r === 0;
+    }
+
+    async IsPkgManagerInstalled(): Promise<boolean> {
+        const res = await proc.execute('cmd', ['/C winget -v']).result;
+        if (res.retc !== 0) {
+            // No winget, or update needed . TODO handle this case, instructions to download?
+        }
+
+        return res.retc === 0;
+    }
+
+    async GetUserConsent(): Promise<boolean> {
+        return super.GetUserConsent();
+    }
+
+    async CancelInstall(): Promise<boolean> {
         return false;
     }
 }
 
-class OSXInstaller implements ICMakeInstaller {
+class OSXInstaller extends BaseInstaller {
     platform = "osx";
     isSupported = true;
 
@@ -89,29 +122,31 @@ class OSXInstaller implements ICMakeInstaller {
         throw new Exception("notimpl");
     }
 
-    CancelInstall(): boolean {
-        return false;
-    }
-
-    async GetUserConsent(): Promise<boolean> {
+    async CancelInstall(): Promise<boolean> {
         return false;
     }
 }
 
-class LinuxInstaller implements ICMakeInstaller {
+class LinuxInstaller extends BaseInstaller {
     platform = "linux";
     isSupported = true;
 
-    BeginInstall(): Promise<boolean> {
-        throw new Exception("notimpl");
+    async BeginInstall(): Promise<boolean> {
+        const out = vscode.window.createOutputChannel("CMakeInstallation");
+        out.appendLine(localize("cmakeInstall.Begin", "Beginning CMake Installation..."));
+        out.show();
+
+        out.appendLine("HELLO LINUX WE ARE HERE");
+
+        return false; // TODO
     }
 
-    CancelInstall(): boolean {
+    async CancelInstall(): Promise<boolean> {
         return false;
     }
 
     async GetUserConsent(): Promise<boolean> {
-        return false;
+        return super.GetUserConsent();
     }
 }
 
