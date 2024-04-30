@@ -489,7 +489,24 @@ async function loadCodeModelTarget(rootPaths: CodeModelKind.PathInfo, jsonFile: 
     // each compileGroup has its separate sysroot.
     let sysroot;
     if (targetObject.compileGroups) {
-        const allSysroots = removeEmpty(targetObject.compileGroups.map(x => !!x.sysroot ? x.sysroot.path : undefined));
+        const allSysroots = removeEmpty(targetObject.compileGroups.map((compileGroup) => {
+            if (!!compileGroup.sysroot)
+                return compileGroup.sysroot.path
+            // sysroot might otherwise be contained in compileCommandFragments
+            const fragSysroots = removeEmpty(!compileGroup.compileCommandFragments ? [] : compileGroup.compileCommandFragments.map((frag) => {
+                if (frag.fragment) {
+                    const searchString = "--sysroot=\"";
+                    const searchIndex = frag.fragment.indexOf(searchString);
+                    if (searchIndex >= 0) {
+                        const startIndex = searchIndex + searchString.length;
+                        const endIndex = frag.fragment.indexOf("\"", startIndex);
+                        return frag.fragment.substring(startIndex, endIndex);
+                    }
+                }
+                return undefined;
+            }));
+            return fragSysroots.length !== 0 ? fragSysroots[0] : undefined;
+        }));
         sysroot = allSysroots.length !== 0 ? allSysroots[0] : undefined;
     }
 
