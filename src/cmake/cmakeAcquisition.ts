@@ -10,6 +10,8 @@ import { Exception } from 'handlebars';
 import { ExecutionOptions } from '@cmt/preset';
 import * as fs from 'fs';
 
+const fetch = require("node-fetch");
+
 nls.config({ messageFormat: nls.MessageFormat.bundle, bundleFormat: nls.BundleFormat.standalone })();
 const localize: nls.LocalizeFunc = nls.loadMessageBundle();
 
@@ -38,6 +40,13 @@ export abstract class BaseInstaller implements ICMakeInstaller {
 
     CancelInstall(): Promise<boolean> {
         throw new Exception("NotImplemented");
+    }
+
+    async IsInstalledAndDiscoverable(shellCommand: string, program: string, output: proc.OutputConsumer, execOpt: ExecutionOptions): Promise<boolean> {
+        const cmd = "-c " + program + " -v";
+        const shell = proc.execute(shellCommand, [cmd], output, execOpt);
+
+        return (await shell.result).retc === 0;
     }
 
     async GetUserConsent(): Promise<boolean> {
@@ -120,8 +129,21 @@ class OSXInstaller extends BaseInstaller {
     platform = "osx";
     isSupported = true;
 
-    BeginInstall(): Promise<boolean> {
-        throw new Exception("notimpl");
+    async BeginInstall(): Promise<boolean> {
+        const out = vscode.window.createOutputChannel("CMakeInstallation");
+        out.appendLine(localize("cmakeInstall.Begin", "Beginning CMake Installation..."));
+        out.show();
+        const output = new CMakeInstallerOutputConsumer(out);
+        const execOpt: proc.ExecutionOptions = { showOutputOnError: true };
+
+        // use /bin/sh check if homebrew installed
+        if (await super.IsInstalledAndDiscoverable("/bin/sh", "homebrew", output, execOpt)) {
+            // install homebrew
+            // which might need terminal access like compiler acquisition
+        }
+        // this.InstallCMake(); // brew install cmake
+        // this.InstallNinja(); // brew install ninja
+        return true;
     }
 
     async CancelInstall(): Promise<boolean> {
@@ -153,18 +175,11 @@ class LinuxInstaller extends BaseInstaller {
         return false; // TODO
     }
 
-    async IsInstalledAndDiscoverable(program: string, output: proc.OutputConsumer, execOpt: ExecutionOptions): Promise<boolean> {
-        const cmd = "-c " + program + " -v";
-        const shell = proc.execute("sh", [cmd], output, execOpt);
-
-        return (await shell.result).retc === 0;
-    }
-
     GetPlatform(): string {
         return "x64"; // TODO
     }
 
-    GetDownloadLinkForPlatform(platform: string) {
+    GetCMakeDownloadLinkForPlatform(platform: string) {
         if (platform.includes("arm64")) {
             return "https://aka.ms/vslinux-cmake-3.19-aarch64";
         } else if (platform.includes("x64")) {
@@ -174,29 +189,68 @@ class LinuxInstaller extends BaseInstaller {
         throw new Exception("Unsupported platform");
     }
 
-    async InstallCMake(out: proc.OutputConsumer, execOpt: proc.ExecutionOptions): Promise<boolean> {
-
-        if (await this.IsInstalledAndDiscoverable("cmake", out, execOpt)) {
-            return true;
+    GetNinjaDownloadLinkForPlatform(platform: string) {
+        if (platform.includes("arm64")) {
+            return "https://aka.ms/vslinux-ninja-aarch64"; // TODO create this link
+        } else if (platform.includes("x64")) {
+            return "https://aka.ms/vslinux-ninja-3.19-x86_64"; // TODO create this link
         }
 
+        throw new Exception("Unsupported platform");
+    }
+
+    async DownloadFile(url: string, filename: string) {
+        const response = await fetch(url);
+        const fileStream = fs.createWriteStream(filename);
+
+        // TODO
+    }
+
+    async ValidateCMakeBinary(binaryPath: string): Promise<boolean> {
         // URL to CMake-provided security hash to validate binary download
         const cmakeBinarySHA = "https://aka.ms/vslinux-cmake-3.19-SHA-verify";
 
-        const platform = this.GetPlatform();
-        const downloadLink = this.GetDownloadLinkForPlatform(platform);
-
-        // Download binary
-
+        // TODO
         return true;
     }
 
-    async InstallNinja(out: proc.OutputConsumer, execOpt: proc.ExecutionOptions): Promise<boolean> {
-        if (await this.IsInstalledAndDiscoverable("ninja", out, execOpt)) {
+    async InstallCMake(out: proc.OutputConsumer, execOpt: proc.ExecutionOptions): Promise<boolean> {
+
+        if (await this.IsInstalledAndDiscoverable("/bin/sh", "cmake", out, execOpt)) {
             return true;
         }
 
-        // Install locally from github
+        const platform = this.GetPlatform();
+        const downloadLink = this.GetCMakeDownloadLinkForPlatform(platform);
+        const destination = "C:\\Users\\elmorrow\\";
+
+        // Download binary
+        await this.DownloadFile(downloadLink, destination);
+        if (!await this.ValidateCMakeBinary(destination)) {
+            throw new Exception("Binary did not match SHA");
+        }
+
+        // Validated, proceed with installation
+        // ($"/bin/sh {PathUtils.EscapeFilenameForUnixShell(remoteFile.FullPath)} --skip-license --prefix={remoteDestDirectory.FullPath}"
+        // run .sh script for install skip license
+
+        return this.IsInstalledAndDiscoverable("/bin/sh", "cmake", out, execOpt);
+    }
+
+    async InstallNinja(out: proc.OutputConsumer, execOpt: proc.ExecutionOptions): Promise<boolean> {
+        if (await this.IsInstalledAndDiscoverable("/bin/sh", "ninja", out, execOpt)) {
+            return true;
+        }
+
+        const platform = this.GetPlatform();
+        const downloadLink = this.GetNinjaDownloadLinkForPlatform(platform);
+        const destination = "C:\\Users\\elmorrow\\";
+
+        // Download binary
+        await this.DownloadFile(downloadLink, destination);
+
+        // TODO check against hash if it exists? upload if not
+
         return true;
     }
 
