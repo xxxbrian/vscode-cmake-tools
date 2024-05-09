@@ -42,7 +42,8 @@ export class IntellisenseData {
         // display in quickinfo window
         // see src/vc/projbld/CMake/Package/IntelliSense/IntellisenseData.cs in VS repo for impl
 
-        const searchToken = this.commands[word] ?? this.variables[word];
+        // CMake commands are case-insensitive, but variables are not.
+        const searchToken = this.commands[word.toLocaleLowerCase()] ?? this.variables[word];
 
         if (!searchToken) {
             return [""];
@@ -66,6 +67,7 @@ export class IntellisenseData {
             }
         }
 
+        // Assume that something with syntax examples is a command, otherwise it's a variable
         if (syntaxExamples) {
             resultStrings.push(description);
             for (const example of syntaxExamples) {
