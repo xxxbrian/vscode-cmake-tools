@@ -7,9 +7,14 @@ class CMakeHoverProvider implements vscode.HoverProvider {
     provideHover(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken): vscode.ProviderResult<vscode.Hover> {
         // get tooltip for span
         const data = id.IntellisenseData.getInstance();
-        // get span
-        // data.getTooltipForText();
-        return new vscode.Hover("MY HOVER");
+        // Get the word at the current position
+        const wordRange = document.getWordRangeAtPosition(position);
+        const word = document.getText(wordRange);
+
+        // Get tooltip for span
+        const tooltip = data.getToolTipForText(word, token);
+
+        return new vscode.Hover(tooltip);
     }
 }
 
