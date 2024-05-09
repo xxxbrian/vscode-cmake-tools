@@ -28,23 +28,22 @@ class CMakeCompletionsProvider implements vscode.CompletionItemProvider {
         // identify whether the user is trying to type a command or a
         // variable. Note that this will not correctly handle multi-line
         // command invocations.
+        const data = await id.IntellisenseData.getInstance();
         if (textBeforeCaret.includes('(')) {
             // guess variable
-            return id.IntellisenseData.getInstance().then(data => {
-                let variables: string[] = [];
-                for (const v in data.variables) {
-                    variables.push(v);
-                }
-                variables = variables.sort();
-                return variables.map((v: string) => {
-                    const completion = new vscode.CompletionItem(v, vscode.CompletionItemKind.Variable);
-                    return completion;
-                });
+            const variables = Object.keys(data.variables).sort();
+            return variables.map((v: string) => {
+                const completion = new vscode.CompletionItem(v, vscode.CompletionItemKind.Variable);
+                return completion;
             });
         } else {
             // guess command
+            const commands = Object.keys(data.commands).sort();
+            return commands.map((c: string) => {
+                const completion = new vscode.CompletionItem(c, vscode.CompletionItemKind.Function);
+                return completion;
+            });
         }
-        return [];
     }
 
     resolveCompletionItem?(item: vscode.CompletionItem, _token: vscode.CancellationToken): vscode.ProviderResult<vscode.CompletionItem> {
