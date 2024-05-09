@@ -52,7 +52,6 @@ export class IntellisenseData {
         const name = searchToken["name"];
         let description = searchToken["description"] as string;
         const syntaxExamples = searchToken["syntax_examples"] as string[];
-        const targets = searchToken["targets"];
 
         if (!name || !description) {
             return [""];
