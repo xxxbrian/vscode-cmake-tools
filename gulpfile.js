@@ -253,7 +253,12 @@ const generateJsonSchemaLoc = () => {
         .pipe(gulp.dest('dist'));
 };
 
-gulp.task('translations-generate', gulp.series(generatedSrcLocBundle, generatedAdditionalLocFiles, generateJsonSchemaLoc));
+const languageServiceDocsPatterns = ["src/docs/*.json"];
+const bundleLanguageServiceDocs = () => {
+    return gulp.src(languageServiceDocsPatterns).pipe(gulp.dest('dist/src/docs'));
+};
+
+gulp.task('translations-generate', gulp.series(generatedSrcLocBundle, generatedAdditionalLocFiles, generateJsonSchemaLoc, bundleLanguageServiceDocs));
 
 const allTypeScript = [
     'src/**/*.ts',

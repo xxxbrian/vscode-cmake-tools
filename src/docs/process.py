@@ -221,6 +221,13 @@ def output_resx(descriptions):
     with open('IntelliSenseResources.resx', 'w') as fileobj:
         fileobj.write(text)
 
+def output_json(description):
+    json_obj = {}
+    for a,b in description:
+        json_obj[a] = b
+    with open('Resources.json', 'w') as fileobj:
+        fileobj.write(json.dumps(json_obj))
+
 def generate_loc_key(name):
     return 'loc_' + re.sub(r'\W', '', name.lower())
 
@@ -284,6 +291,7 @@ def main():
         }
 
     output_resx(resx_descriptions)
+    output_json(resx_descriptions)
 
     with open('commands.json', 'w') as commands_file:
         json.dump(commands_json, commands_file)

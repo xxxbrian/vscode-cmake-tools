@@ -2252,14 +2252,6 @@ async function setup(context: vscode.ExtensionContext, progress?: ProgressHandle
         log.trace(localize('register.command', 'Register CMakeTools extension command cmake.getSettingsChangePromise'));
         context.subscriptions.push(vscode.commands.registerCommand('cmake.getSettingsChangePromise', () => getSettingsChangePromise()));
     }
-    // Completions testing
-    const cmakeListsDocumentSelector: vscode.DocumentSelector = [{
-        scheme: 'file',
-        language: 'cmake',
-        pattern: '**/CMakeLists.txt'
-    }];
-    context.subscriptions.push(vscode.languages.registerCompletionItemProvider(cmakeListsDocumentSelector, completions.getCompletionProvider()));
-    context.subscriptions.push(vscode.languages.registerHoverProvider(cmakeListsDocumentSelector, hover.getHoverProvider()));
 
     context.subscriptions.push(...[
         // Special commands that don't require logging or separate error handling
@@ -2339,6 +2331,14 @@ export async function activate(context: vscode.ExtensionContext): Promise<api.CM
     }
 
     const CMAKE_LANGUAGE = "cmake";
+    // Completions testing
+    const cmakeListsDocumentSelector: vscode.DocumentSelector = [
+        { scheme: 'file', language: CMAKE_LANGUAGE, pattern: '**/CMakeLists.txt' }, 
+        { scheme: "untitled", language: CMAKE_LANGUAGE, }
+    
+    ];
+    context.subscriptions.push(vscode.languages.registerCompletionItemProvider(cmakeListsDocumentSelector, completions.getCompletionProvider()));
+    context.subscriptions.push(vscode.languages.registerHoverProvider(cmakeListsDocumentSelector, hover.getHoverProvider()));
 
     vscode.languages.setLanguageConfiguration(CMAKE_LANGUAGE, {
         indentationRules: {
