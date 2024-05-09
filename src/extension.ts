@@ -49,6 +49,7 @@ import { getCMakeExecutableInformation } from './cmake/cmakeExecutable';
 import { DebuggerInformation, getDebuggerPipeName } from './debug/debuggerConfigureDriver';
 import { DebugConfigurationProvider, DynamicDebugConfigurationProvider } from './debug/debugConfigurationProvider';
 import { deIntegrateTestExplorer } from './ctest';
+import * as completions from './completions';
 
 nls.config({ messageFormat: nls.MessageFormat.bundle, bundleFormat: nls.BundleFormat.standalone })();
 const localize: nls.LocalizeFunc = nls.loadMessageBundle();
@@ -2250,6 +2251,13 @@ async function setup(context: vscode.ExtensionContext, progress?: ProgressHandle
         log.trace(localize('register.command', 'Register CMakeTools extension command cmake.getSettingsChangePromise'));
         context.subscriptions.push(vscode.commands.registerCommand('cmake.getSettingsChangePromise', () => getSettingsChangePromise()));
     }
+    // Completions testing
+    const cmakeListsDocumentSelector: vscode.DocumentSelector = [{
+        scheme: 'file',
+        language: 'cmake',
+        pattern: '**/CMakeLists.txt'
+    }];
+    context.subscriptions.push(vscode.languages.registerCompletionItemProvider(cmakeListsDocumentSelector, completions.getCompletionProvider()));
 
     context.subscriptions.push(...[
         // Special commands that don't require logging or separate error handling
