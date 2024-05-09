@@ -50,6 +50,7 @@ import { DebuggerInformation, getDebuggerPipeName } from './debug/debuggerConfig
 import { DebugConfigurationProvider, DynamicDebugConfigurationProvider } from './debug/debugConfigurationProvider';
 import { deIntegrateTestExplorer } from './ctest';
 import * as completions from './completions';
+import * as hover from './hover';
 
 nls.config({ messageFormat: nls.MessageFormat.bundle, bundleFormat: nls.BundleFormat.standalone })();
 const localize: nls.LocalizeFunc = nls.loadMessageBundle();
@@ -2258,6 +2259,7 @@ async function setup(context: vscode.ExtensionContext, progress?: ProgressHandle
         pattern: '**/CMakeLists.txt'
     }];
     context.subscriptions.push(vscode.languages.registerCompletionItemProvider(cmakeListsDocumentSelector, completions.getCompletionProvider()));
+    context.subscriptions.push(vscode.languages.registerHoverProvider(cmakeListsDocumentSelector, hover.getHoverProvider()));
 
     context.subscriptions.push(...[
         // Special commands that don't require logging or separate error handling

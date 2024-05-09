@@ -1,0 +1,73 @@
+{
+    "find_file": [
+        "find_file",
+        "This command is used to find a full path to named file.",
+        [
+            "find_file(<VAR> name1 [path1 path2 ...])",
+            "find_file(<VAR> name | NAMES name1 [name2 ...] [HINTS path1 [path2 ... ENV var]] [PATHS path1 [path2 ... ENV var]] [PATH_SUFFIXES suffix1 [suffix2 ...]] [DOC \"cache documentation string\"] [NO_DEFAULT_PATH] [NO_PACKAGE_ROOT_PATH] [NO_CMAKE_PATH] [NO_CMAKE_ENVIRONMENT_PATH] [NO_SYSTEM_ENVIRONMENT_PATH] [NO_CMAKE_SYSTEM_PATH] [CMAKE_FIND_ROOT_PATH_BOTH | ONLY_CMAKE_FIND_ROOT_PATH | NO_CMAKE_FIND_ROOT_PATH])"
+        ]
+    ],
+    "find_library": [
+        "find_library",
+        "This command is used to find a library.",
+        [
+            "find_library(<VAR> name1 [path1 path2 ...])",
+            "find_library (<VAR> name | NAMES name1 [name2 ...] [NAMES_PER_DIR] [HINTS path1 [path2 ... ENV var]] [PATHS path1 [path2 ... ENV var]] [PATH_SUFFIXES suffix1 [suffix2 ...]] [DOC \"cache documentation string\"] [NO_DEFAULT_PATH] [NO_PACKAGE_ROOT_PATH] [NO_CMAKE_PATH] [NO_CMAKE_ENVIRONMENT_PATH] [NO_SYSTEM_ENVIRONMENT_PATH] [NO_CMAKE_SYSTEM_PATH] [CMAKE_FIND_ROOT_PATH_BOTH | ONLY_CMAKE_FIND_ROOT_PATH | NO_CMAKE_FIND_ROOT_PATH])"
+        ]
+    ],
+    "find_path": [
+        "find_path",
+        "This command is used to find a directory containing the named file.",
+        [
+            "find_path(<VAR> name1 [path1 path2 ...])",
+            "find_path (<VAR> name | NAMES name1 [name2 ...] [HINTS path1 [path2 ... ENV var]] [PATHS path1 [path2 ... ENV var]] [PATH_SUFFIXES suffix1 [suffix2 ...]] [DOC \"cache documentation string\"] [NO_DEFAULT_PATH] [NO_PACKAGE_ROOT_PATH] [NO_CMAKE_PATH] [NO_CMAKE_ENVIRONMENT_PATH] [NO_SYSTEM_ENVIRONMENT_PATH] [NO_CMAKE_SYSTEM_PATH] [CMAKE_FIND_ROOT_PATH_BOTH | ONLY_CMAKE_FIND_ROOT_PATH | NO_CMAKE_FIND_ROOT_PATH])"
+        ]
+    ],
+    "find_program": [
+        "find_program",
+        "This command is used to find a program.",
+        [
+            "find_program(<VAR> name1 [path1 path2 ...])",
+            "find_program (<VAR> name | NAMES name1 [name2 ...] [NAMES_PER_DIR] [HINTS path1 [path2 ... ENV var]] [PATHS path1 [path2 ... ENV var]] [PATH_SUFFIXES suffix1 [suffix2 ...]] [DOC \"cache documentation string\"] [NO_DEFAULT_PATH] [NO_PACKAGE_ROOT_PATH] [NO_CMAKE_PATH] [NO_CMAKE_ENVIRONMENT_PATH] [NO_SYSTEM_ENVIRONMENT_PATH] [NO_CMAKE_SYSTEM_PATH] [CMAKE_FIND_ROOT_PATH_BOTH | ONLY_CMAKE_FIND_ROOT_PATH | NO_CMAKE_FIND_ROOT_PATH])"
+        ]
+    ],
+    "target_include_directories": [
+        "target_include_directories",
+        "Add include directories to a target.",
+        [
+            "target_include_directories(<target> [SYSTEM] [BEFORE] <INTERFACE|PUBLIC|PRIVATE> [items1...] [<INTERFACE|PUBLIC|PRIVATE> [items2...] ...])",
+            "target_include_directories(mylib PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/mylib> $<INSTALL_INTERFACE:include/mylib>)"
+        ]
+    ],
+    "target_link_libraries": [
+        "target_link_libraries",
+        "Specify libraries or flags to use when linking a given target and/or its dependents. Usage requirements  from linked library targets will be propagated. Usage requirements of a target's dependencies affect compilation of its own sources.",
+        [
+            "target_link_libraries(<target> ... <item>... ...)",
+            "target_link_libraries(<target> <PRIVATE|PUBLIC|INTERFACE> <item>... [<PRIVATE|PUBLIC|INTERFACE> <item>...]...)",
+            "target_link_libraries(<target> <item>...)",
+            "target_link_libraries(<target> <LINK_PRIVATE|LINK_PUBLIC> <lib>... [<LINK_PRIVATE|LINK_PUBLIC> <lib>...]...)",
+            "target_link_libraries(<target> LINK_INTERFACE_LIBRARIES <item>...)"
+        ]
+    ],
+    "COMPILE_DEFINITIONS": [
+        "COMPILE_DEFINITIONS",
+        "Preprocessor definitions for compiling a directory's sources."
+    ],
+    "INTERFACE_INCLUDE_DIRECTORIES": [
+        "INTERFACE_INCLUDE_DIRECTORIES",
+        "List of public property_name requirements for a library."
+    ],
+    "INTERFACE_LINK_LIBRARIES": [
+        "INTERFACE_LINK_LIBRARIES",
+        "List public interface libraries for a library."
+    ],
+    "LINK_INTERFACE_LIBRARIES": [
+        "LINK_INTERFACE_LIBRARIES",
+        "List public interface libraries for a shared library or executable."
+    ],
+    "LINK_INTERFACE_LIBRARIES_CONFIG": [
+        "LINK_INTERFACE_LIBRARIES_<CONFIG>",
+        "Per-configuration list of public interface libraries for a target."
+    ]
+}
