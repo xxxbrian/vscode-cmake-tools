@@ -66,9 +66,8 @@ export class IntellisenseData {
             }
         }
 
-        resultStrings.push(description);
-
         if (syntaxExamples) {
+            resultStrings.push(description);
             for (const example of syntaxExamples) {
                 const splitExamples = example.split(`${name}(`);
                 for (const ex of splitExamples) {
@@ -78,6 +77,9 @@ export class IntellisenseData {
                     }
                 }
             }
+        } else {
+            resultStrings.push(name);
+            resultStrings.push(description);
         }
 
         return resultStrings;
