@@ -1,9 +1,9 @@
 import * as path from 'path';
 import { promisify } from 'util';
-import { CancellationToken } from 'vscode';
+import { CancellationToken, MarkdownString, MarkedString } from 'vscode';
 const fs = require('fs');
 import * as util from '@cmt/util';
-import { extensionManager, getExtensionLocalizedStrings } from './extension';
+import { getExtensionLocalizedStrings } from './extension';
 
 // Create a version of fs.readFile that returns a promise
 const readFile = promisify(fs.readFile);
@@ -37,7 +37,7 @@ export class IntellisenseData {
         this.variables = await parseJsonFile(path.join(util.thisExtensionPath(), "dist", "src", "docs", "variables.json"));
     }
 
-    public getToolTipForText(word: string, _token: CancellationToken): string {
+    public getToolTipForText(word: string, _token: CancellationToken): (MarkdownString | string | MarkedString)[]  {
         // retrieve elements of quickinfo name, description, samples from commands and variables
         // display in quickinfo window
         // see src/vc/projbld/CMake/Package/IntelliSense/IntellisenseData.cs in VS repo for impl
@@ -45,17 +45,19 @@ export class IntellisenseData {
         const searchToken = this.commands[word] ?? this.variables[word];
 
         if (!searchToken) {
-            return "";
+            return [""];
         }
 
         const name = searchToken["name"];
         let description = searchToken["description"] as string;
-        const syntaxExamples = searchToken["syntax_examples"];
+        const syntaxExamples = searchToken["syntax_examples"] as string[];
         const targets = searchToken["targets"];
 
         if (!name || !description) {
-            return "";
+            return [""];
         }
+
+        const resultStrings = [];
 
         if (description.startsWith("loc_")) {
             const localizedStrings = getExtensionLocalizedStrings();
@@ -64,6 +66,20 @@ export class IntellisenseData {
             }
         }
 
-        return description;
+        resultStrings.push(description);
+
+        if (syntaxExamples) {
+            for (const example of syntaxExamples) {
+                const splitExamples = example.split(`${name}(`);
+                for (const ex of splitExamples) {
+                    if (ex) {
+                        const hover = { language: "cmake", value: ` ${name}(${ex}` };
+                        resultStrings.push(hover);
+                    }
+                }
+            }
+        }
+
+        return resultStrings;
     }
 }

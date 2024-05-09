@@ -2333,9 +2333,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<api.CM
     const CMAKE_LANGUAGE = "cmake";
     // Completions testing
     const cmakeListsDocumentSelector: vscode.DocumentSelector = [
-        { scheme: 'file', language: CMAKE_LANGUAGE, pattern: '**/CMakeLists.txt' }, 
-        { scheme: "untitled", language: CMAKE_LANGUAGE, }
-    
+        { scheme: 'file', language: CMAKE_LANGUAGE, pattern: '**/CMakeLists.txt' },
+        { scheme: "untitled", language: CMAKE_LANGUAGE }
     ];
     context.subscriptions.push(vscode.languages.registerCompletionItemProvider(cmakeListsDocumentSelector, completions.getCompletionProvider()));
     context.subscriptions.push(vscode.languages.registerHoverProvider(cmakeListsDocumentSelector, hover.getHoverProvider()));
