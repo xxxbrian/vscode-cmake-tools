@@ -4,6 +4,7 @@ import { CancellationToken, MarkdownString, MarkedString } from 'vscode';
 const fs = require('fs');
 import * as util from '@cmt/util';
 import { getExtensionLocalizedStrings } from './extension';
+import { Mark } from 'js-yaml';
 
 // Create a version of fs.readFile that returns a promise
 const readFile = promisify(fs.readFile);
@@ -68,18 +69,21 @@ export class IntellisenseData {
 
         // Assume that something with syntax examples is a command, otherwise it's a variable
         if (syntaxExamples) {
-            resultStrings.push(description);
+            const desc: MarkdownString = new MarkdownString(`$(symbol-function) ${description}`, true);
+            resultStrings.push(desc);
             for (const example of syntaxExamples) {
                 const splitExamples = example.split(`${name}(`);
                 for (const ex of splitExamples) {
                     if (ex) {
-                        const hover = { language: "cmake", value: ` ${name}(${ex}` };
-                        resultStrings.push(hover);
+                        const str: MarkdownString = new MarkdownString();
+                        str.appendCodeblock(`${name}(${ex}`, "cmake");
+                        resultStrings.push(str);
                     }
                 }
             }
         } else {
-            resultStrings.push(name);
+            const nameMarkdown: MarkdownString = new MarkdownString(`$(symbol-variable) ${name}`, true);
+            resultStrings.push(nameMarkdown);
             resultStrings.push(description);
         }
 
