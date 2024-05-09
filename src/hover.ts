@@ -1,7 +1,7 @@
 // Populate hover  provider.
 
 import * as vscode from "vscode";
-import * as id from "@cmt/intellisenseData";
+import * as id from "@cmt/intellisensedata";
 
 class CMakeHoverProvider implements vscode.HoverProvider {
     provideHover(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken): vscode.ProviderResult<vscode.Hover> {

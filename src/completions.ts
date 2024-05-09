@@ -1,6 +1,7 @@
 // Populate completion items provider.
 
 import * as vscode from "vscode";
+import * as id from "@cmt/intellisensedata";
 
 class CMakeCompletionsProvider implements vscode.CompletionItemProvider {
 
@@ -29,6 +30,17 @@ class CMakeCompletionsProvider implements vscode.CompletionItemProvider {
         // command invocations.
         if (textBeforeCaret.includes('(')) {
             // guess variable
+            return id.IntellisenseData.getInstance().then(data => {
+                let variables: string[] = [];
+                for (const v in data.variables) {
+                    variables.push(v);
+                }
+                variables = variables.sort();
+                return variables.map((v: string) => {
+                    const completion = new vscode.CompletionItem(v, vscode.CompletionItemKind.Variable);
+                    return completion;
+                });
+            });
         } else {
             // guess command
         }
