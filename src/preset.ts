@@ -662,13 +662,22 @@ function getVendorForConfigurePresetHelper(folder: string, preset: ConfigurePres
 }
 
 async function getExpansionOptions(workspaceFolder: string, sourceDir: string, preset: ConfigurePreset | BuildPreset | TestPreset) {
-    const generator = 'generator' in preset
+    let generator = 'generator' in preset
         ? preset.generator
         : ('__generator' in preset ? preset.__generator : undefined);
 
+    if (!generator) {
+        if (preset.inherits) {
+            const inheritPreset = getPresetByName(configurePresets(workspaceFolder), preset.inherits[0]);
+            if (inheritPreset) {
+                generator = inheritPreset.generator;
+            }
+        }
+    }
+
     const expansionOpts: ExpansionOptions = {
         vars: {
-            generator: generator || 'null',
+            generator: generator || '${generator}',
             workspaceFolder,
             workspaceFolderBasename: path.basename(workspaceFolder),
             workspaceHash: util.makeHashString(workspaceFolder),
@@ -1390,6 +1399,10 @@ export async function expandBuildPreset(folder: string, name: string, workspaceF
         for (let index = 0; index < preset.nativeToolOptions.length; index++) {
             expandedPreset.nativeToolOptions[index] = await expandString(preset.nativeToolOptions[index], expansionOpts);
         }
+    }
+
+    if (preset.condition) {
+        expandedPreset.condition = await expandCondition(preset.condition, expansionOpts);
     }
 
     // Other fields can be copied by reference for simplicity

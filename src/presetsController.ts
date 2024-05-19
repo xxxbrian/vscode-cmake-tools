@@ -926,6 +926,9 @@ export class PresetsController {
             for (const buildPreset of buildPresets) {
                 // Set active build preset as the first valid build preset matches the selected configure preset
                 if (buildPreset.configurePreset === selectedConfigurePreset && !buildPreset.hidden) {
+                    const expansionOpts: ExpansionOptions = await getExpansionOptions(this.folderPath, this._sourceDir, buildPreset);
+                    const whatsThis2 = await preset.expandConditionsForPresets(this.folderPath, this._sourceDir);
+                    const whatsThis = preset.evaluatePresetCondition(buildPreset, buildPresets);
                     await this.setBuildPreset(buildPreset.name, false/*needToCheckConfigurePreset*/, false/*checkChangingPreset*/);
                     currentBuildPreset = this.project.buildPreset?.name;
                 }
