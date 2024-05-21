@@ -125,12 +125,17 @@ export class CMakeFileApiDriver extends CMakeDriver {
         // We need to treat this case as if the cache is not present and let a reconfigure
         // refresh the cache information.
         const cacheExists: boolean = await fs.exists(this.cachePath);
-        if (cacheExists && this.generator?.name === await this.getGeneratorFromCache(this.cachePath)) {
-            await this.loadGeneratorInformationFromCache(this.cachePath);
-            const code_model_exist = await this.updateCodeModel();
-            if (!code_model_exist && this.config.configureOnOpen === true) {
-                await this.doConfigure([], undefined, undefined);
-            }
+        if (cacheExists &&
+            // this.generator?.toolset === await this.getToolsetFromCache(this.cachePath) &&
+            // this.generator?.platform === await this.getPlatformFromCache(this.cachePath) &&
+            this.generator?.name === await this.getGeneratorFromCache(this.cachePath)) {
+                await this.loadGeneratorInformationFromCache(this.cachePath);
+               //  await this.loadPlatformInformationFromCache(this.cachePath);
+               //  await this.loadToolsetInformationFromCache(this.cachePath);
+                const code_model_exist = await this.updateCodeModel();
+                if (!code_model_exist && this.config.configureOnOpen === true) {
+                    await this.doConfigure([], undefined, undefined);
+                }
         } else {
             // Do not delete the cache if configureOnOpen is false, which signals a project that may be
             // expected to be configured from outside VSCode and deleting the cache breaks that scenario.
@@ -148,6 +153,8 @@ export class CMakeFileApiDriver extends CMakeDriver {
             }
 
             this._generatorInformation = this.generator;
+            // this._platformInformation = this.platform;
+            // this._toolsetInformation = this.toolset;
         }
         if (!this.generator && !this.useCMakePresets) {
             throw new NoGeneratorError();

@@ -967,7 +967,7 @@ async function getVSInstallForKit(kit: Kit): Promise<VSInstallation | undefined>
     const inst = installs.find(match);
     if (!inst) {
         log.warning(localize('vs.instance.not.found.run.scan.kits',
-            'VS installation instance not found for kit {1}. It is recommended you re-scan the kits.',
+            'VS installation instance not found for kit {0}. It is recommended you re-scan the kits.',
             kit?.visualStudio));
     }
 
