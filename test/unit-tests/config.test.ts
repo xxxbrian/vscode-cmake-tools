@@ -48,7 +48,6 @@ function createConfig(conf: Partial<ExtensionConfigurationSettings>): Configurat
         loadCompileCommands: true,
         configureOnOpen: null,
         configureOnEdit: true,
-        deleteBuildDirOnCleanConfigure: false,
         skipConfigureIfCachePresent: null,
         useCMakeServer: true,
         cmakeCommunicationMode: 'automatic',

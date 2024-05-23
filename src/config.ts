@@ -193,7 +193,6 @@ export interface ExtensionConfigurationSettings {
     loadCompileCommands: boolean;
     configureOnOpen: boolean | null;
     configureOnEdit: boolean;
-    deleteBuildDirOnCleanConfigure: boolean | null;
     skipConfigureIfCachePresent: boolean | null;
     useCMakeServer: boolean;
     cmakeCommunicationMode: CMakeCommunicationMode;
@@ -433,9 +432,6 @@ export class ConfigurationReader implements vscode.Disposable {
     get configureOnEdit() {
         return this.configData.configureOnEdit;
     }
-    get deleteBuildDirOnCleanConfigure() {
-        return this.configData.deleteBuildDirOnCleanConfigure;
-    }
     get skipConfigureIfCachePresent() {
         return this.configData.skipConfigureIfCachePresent;
     }
@@ -596,7 +592,6 @@ export class ConfigurationReader implements vscode.Disposable {
         loadCompileCommands: new vscode.EventEmitter<boolean>(),
         configureOnOpen: new vscode.EventEmitter<boolean | null>(),
         configureOnEdit: new vscode.EventEmitter<boolean>(),
-        deleteBuildDirOnCleanConfigure: new vscode.EventEmitter<boolean | null>(),
         skipConfigureIfCachePresent: new vscode.EventEmitter<boolean | null>(),
         useCMakeServer: new vscode.EventEmitter<boolean>(),
         cmakeCommunicationMode: new vscode.EventEmitter<CMakeCommunicationMode>(),
